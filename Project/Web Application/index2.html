@@ -1,0 +1,153 @@
+<html>
+<body>
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId      : '1542797225956026', // App ID
+            channelUrl : 'http://localhost',
+            status     : true,
+            cookie     : true
+            //xfbml      : true  // parse XFBML
+        });
+
+
+        FB.Event.subscribe('auth.authResponseChange', function(response)
+        {
+            if (response.status === 'connected')
+            {
+                document.getElementById("message").innerHTML +=  "<br>Connected to Facebook";
+
+            }
+            else if (response.status === 'not_authorized')
+            {
+                document.getElementById("message").innerHTML +=  "<br>Failed to Connect";
+
+            } else
+            {
+                document.getElementById("message").innerHTML +=  "<br>Logged Out";
+            }
+        });
+
+    };
+
+    function Login()
+    {
+
+        FB.login(function(response) {
+            if (response.authResponse)
+            {
+                getUserInfo();
+            } else
+            {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        },{scope: 'email,user_photos,user_videos'});
+
+
+    }
+
+    function getUserInfo() {
+        FB.api('/me', function(response) {
+
+            var str="<b>Name</b> : "+response.name+"<br>";
+            str +="<b>Link: </b>"+response.link+"<br>";
+            str +="<b>Username:</b> "+response.username+"<br>";
+            str +="<b>id: </b>"+response.id+"<br>";
+            str +="<b>Email:</b> "+response.email+"<br>";
+            str +="<input type='button' value='Get Album Names' onclick='getAlbumNames();'/>";
+            str +="<input type='button' value='Logout' onclick='Logout();'/>";
+            document.getElementById("status").innerHTML=str;
+
+        });
+    }
+    function getAlbumNames()
+    {
+        /* Get Profile Picture
+        FB.api('/me/picture?type=small', function(response)
+        {
+            var str="<br/><b>Profile Picture</b> : <img src='"+response.data.url+"'/>";
+            //str+="<b>:</b>";
+            document.getElementById("status").innerHTML+=str;
+
+        });
+
+        */
+
+        //Get Album Names
+
+        FB.api('/me/albums',  function(response)
+         {
+            var str="<ul>";
+            str +="<input type='button' value='Logout' onclick='Logout();'/>";
+
+            for (var i=0, l=response.data.length; i<l; i++)
+            {
+                var album = response.data[i];
+                str+=  '<li><a href="'+album.link+'">'+album.name+'</a><li>';
+                //str+= "<input type='button' value='Get Photos' onclick='getAlbumPhotos(album.id);'/>";
+
+            }
+            str+="</ul>";
+            document.getElementById("status").innerHTML=str;
+        });
+
+    }
+
+    function getAlbumPhotos(album)
+    {
+        FB.api('/' +album.id + '/photos',  function(response)
+        {
+            var str="<ul>";
+
+            for (var i=0, l=response.data.length; i<l; i++)
+            {
+                var photo = response.data[i];
+                str+=  "<br/><b>Profile Picture</b> : <img src='"+response.data.url+"'/>";
+            }
+            str+="</ul>";
+            document.getElementById("status").innerHTML=str;
+        });
+    }
+    function Logout()
+    {
+        FB.logout(function(){document.location.reload();});
+    }
+
+    // Load the SDK
+    (function(d){
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+    }(document));
+
+</script>
+<div align="center">
+    <h2>Digest from Facebook User Album</h2>
+
+    <style>
+        * { margin: 0; padding: 0; }
+
+        html
+        {
+            background: url(background2.png) no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+    </style>
+
+    <div id="status">
+        <img src="fblogin.png" style="cursor:pointer;" onclick="Login()"/>
+    </div>
+    <br/><br/><br/><br/><br/>
+    <div id="message">
+        Logs:<br/>
+    </div>
+
+</div>
+</body>
+</html>
